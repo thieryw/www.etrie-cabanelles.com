@@ -1,0 +1,27 @@
+@font-face {
+	font-family: futura;
+	src: url("./FuturaLight.woff2") format("woff2");
+	font-weight: 500;
+	font-style: normal; 
+}
+  
+@font-face {
+	font-family: futura;
+	src: url("./FuturaSctotLight.woff2") format("woff2");
+	font-weight: 300;
+	font-style: normal; 
+}
+  
+@font-face {
+	font-family: futura;
+	src: url("./FuturaStd.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal; 
+}
+  
+@font-face {
+	font-family: Marianne;
+	src: url("./FuturaStdLightCondensed.woff2") format("woff2");
+	font-weight: 600;
+	font-style: italic; 
+}

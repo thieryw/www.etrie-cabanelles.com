@@ -1,0 +1,13 @@
+@font-face {
+	font-family: freight;
+	src: url("./FreightDispBookItalic.woff2") format("woff2");
+	font-weight: 300;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: freight;
+	src: url("./FreightItalic.woff2") format("woff2");
+	font-weight: 300;
+	font-style: italic;
+}
