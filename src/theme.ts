@@ -1,6 +1,7 @@
 import { createThemeProvider, defaultGetTypographyDesc } from "onyxia-ui";
 import { createMakeStyles } from "tss-react";
 import { createText } from "onyxia-ui/Text";
+export { breakpointsValues } from "onyxia-ui"
 
 export const { ThemeProvider, useTheme } = createThemeProvider({
     "getTypographyDesc": ({
