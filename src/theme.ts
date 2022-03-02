@@ -1,6 +1,7 @@
 import { createThemeProvider, defaultGetTypographyDesc } from "onyxia-ui";
 import { createMakeStyles } from "tss-react";
 import { createText } from "onyxia-ui/Text";
+import { defaultPalette } from "onyxia-ui/lib/color"
 export { breakpointsValues } from "onyxia-ui"
 
 export const { ThemeProvider, useTheme } = createThemeProvider({
@@ -38,6 +39,10 @@ export const { ThemeProvider, useTheme } = createThemeProvider({
             },
         };
     },
+    "palette": {
+        ...defaultPalette,
+        "gold": "#cab679"
+    }
 });
 
 export const { makeStyles } = createMakeStyles({ useTheme });

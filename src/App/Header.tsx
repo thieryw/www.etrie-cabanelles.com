@@ -1,9 +1,14 @@
-import {memo, useState} from "react";
+import {memo, useState, useEffect} from "react";
 import type { ReactNode } from "react";
 import MuiLink from "@mui/material/Link";
-import { breakpointsValues, makeStyles } from "../theme";
+import { makeStyles } from "../theme";
 import { useDomRect } from "powerhooks/useDomRect";
 import { useConstCallback } from "powerhooks/useConstCallback";
+import { GlArrow } from "gitlanding/utils/GlArrow";
+import Dehaze from "@mui/icons-material/Dehaze";
+import { GlLogo } from "gitlanding/utils/GlLogo";
+import CloseIcon from '@mui/icons-material/Close';
+
 
 export type HeaderProps = {
 	className?: string;
@@ -28,120 +33,218 @@ export type HeaderProps = {
 
 export const Header = memo((props: HeaderProps) => {
 	const { links, socialMediaIcons, title } = props;
-	const { theme, classes } = useStyles({
-		"isEvenNumberOfLinks": links.length % 2 === 0
+	const [isMenuUnfolded, setIsMenuUnfolded] = useState(false);
+	const [breakPoint, setBreakPoint] = useState(0);
+	const toggleMenu = useConstCallback(() => {
+		setIsMenuUnfolded(!isMenuUnfolded);
 	});
-
 	const { ref, domRect: { height: headerHeight } } = useDomRect();
-	return <header ref={ref} className={classes.root}>
-		<div className={classes.linkAndTitleWrapper}>
-			{
-				(() => {
-					if (theme.windowInnerWidth < breakpointsValues.lg) {
-						return <Links headerHeight={headerHeight} links={links} />
-					};
+	const {ref: linksRef, domRect: { height: linksHeight, width: linksWidth }} = useDomRect();
 
-					if (links.length % 2 !== 0) {
-						return <>
-							<div>
-								{title}
-							</div>
-							<Links headerHeight={headerHeight} links={links} />
-						</>
-					}
+	useEffect(()=>{
+		if(breakPoint !== 0){
+			return;
+		}
 
-					return <>
-						<Links headerHeight={headerHeight} links={links.filter((_link, index) =>
-							index < (links.length) / 2
-						)
-						}
-						/>
-						<div className={classes.titleWrapper}>
-							{title}
-						</div>
-						<Links
-							headerHeight={headerHeight}
-							links={links.filter((_link, index) =>
-								index >= (links.length) / 2
-							)
-							}
-						/>
-					</>
-				})()
-			}
-		</div>
+		setBreakPoint(linksWidth);
 
+	}, [linksWidth, breakPoint]);
+
+	const { theme, classes } = useStyles({
+		"isEvenNumberOfLinks": links.length % 2 === 0,
+		isMenuUnfolded,
+		linksHeight,
+		breakPoint
+
+	});
+	return <div className={classes.outerWrapper}>
 		{
-			socialMediaIcons !== undefined && theme.windowInnerWidth < breakpointsValues.lg &&
-			<div>
+			theme.windowInnerWidth < breakPoint &&
+			<div className={classes.closeButton} onClick={toggleMenu}>
+				<Dehaze />
+			</div>
+		}
+		<header ref={ref} className={classes.root}>
+			<div className={classes.innerWrapper}>
 				{
-					socialMediaIcons.map(({ href, iconUrl }) =>
-						<MuiLink key={href} href={href}>
-							<img src={iconUrl} alt="social media" />
-						</MuiLink>
-					)
+					theme.windowInnerWidth < breakPoint &&
+					<div className={classes.closeButton} onClick={toggleMenu}>
+						<CloseIcon />
+					</div>
+
 				}
+				<div ref={linksRef} className={classes.linkAndTitleWrapper}>
+					{
+						(() => {
+							if (theme.windowInnerWidth < breakPoint) {
+								return <Links breakPoint={breakPoint} headerHeight={headerHeight} links={links} />
+							};
+
+							if (links.length % 2 !== 0) {
+								return <>
+									<div>
+										{title}
+									</div>
+									<Links breakPoint={breakPoint} headerHeight={headerHeight} links={links} />
+								</>
+							}
+
+							return <>
+								<Links breakPoint={breakPoint} headerHeight={headerHeight} links={links.filter((_link, index) =>
+									index < (links.length) / 2
+								)
+								}
+								/>
+								<div className={classes.titleWrapper}>
+									{title}
+								</div>
+								<Links
+									breakPoint={breakPoint}
+									headerHeight={headerHeight}
+									links={links.filter((_link, index) =>
+										index >= (links.length) / 2
+									)
+									}
+								/>
+							</>
+						})()
+					}
+				</div>
+
+				{
+					socialMediaIcons !== undefined && theme.windowInnerWidth < breakPoint &&
+					<div className={classes.socialMediaIcons}>
+						{
+							socialMediaIcons.map(({ href, iconUrl }) =>
+								<MuiLink className={classes.socialMediaIcon} key={href} href={href}>
+									<GlLogo logoUrl={iconUrl} width={theme.spacing(7)} />
+								</MuiLink>
+							)
+						}
+					</div>
+
+				}
+
 			</div>
 
-		}
-
-	</header>
+		</header>
+	</div>
 })
 
-const useStyles = makeStyles<{ isEvenNumberOfLinks: boolean }>()(
-	(theme, { isEvenNumberOfLinks }) => ({
-		"root": {
-			"position": "relative",
-			"width": theme.windowInnerWidth,
-			"padding": theme.spacing(3),
-			"backgroundColor": "black"
+const useStyles = makeStyles<{
+	isEvenNumberOfLinks: boolean;
+	isMenuUnfolded: boolean;
+	linksHeight: number;
+	breakPoint: number;
+}>()(
+	(theme, { isEvenNumberOfLinks, isMenuUnfolded, linksHeight, breakPoint }) => {
+		return {
+			"root": {
+				"position": "absolute",
+				"width": theme.windowInnerWidth,
+				"top": 0,
+				"left": 0,
+				"height": linksHeight + theme.spacing(3) * 2,
+				"backgroundColor": "black",
+				"opacity": breakPoint === 0 ? 0 : 1,
+				...(theme.windowInnerWidth < breakPoint ? {
+					"height": isMenuUnfolded ? "100vh" : 0,
+					"transition": breakPoint === 0 ? "none" : "height 400ms",
+					"overflow": "hidden"
+				} : {})
 
-		},
-		"linkAndTitleWrapper": {
-			"display": "flex",
-			"flexDirection": "row",
-			"alignItems": "center",
-			"justifyContent": "center"
-		},
-		"titleWrapper": {
-			...(() => {
-				const value = theme.spacing(7);
+			},
+			"closeButton": {
+				"position": "absolute",
+				"top": theme.spacing(5),
+				"right": theme.spacing(5),
+				"transform": "scale(1.4)"
 
-				return {
-					"marginRight": value,
-					"marginLeft": isEvenNumberOfLinks ? value : undefined
-				}
+			},
+			"outerWrapper": {
+				"width": "100vw"
+			},
+			"innerWrapper": {
+				"padding": theme.spacing(3),
+				"display": "flex",
+				"justifyContent": "center",
+				...(theme.windowInnerWidth < breakPoint ? {
+					"flexDirection": "column",
+					"height": "100%",
+					"paddingTop": theme.spacing(8)
+				} : {})
+			},
+			"linkAndTitleWrapper": {
+				"position": theme.windowInnerWidth < breakPoint ? "relative" : "absolute",
+				"display": "flex",
+				"flexDirection": "row",
+				"alignItems": "center",
+				"justifyContent": "center",
+				...(theme.windowInnerWidth < breakPoint ? {
+					"justifyContent": "left",
 
-			})()
+				} : {})
+			},
+			"titleWrapper": {
+				...(() => {
+					const value = theme.spacing(7);
+
+					return {
+						"marginRight": value,
+						"marginLeft": isEvenNumberOfLinks ? value : undefined
+					}
+
+				})()
+			},
+			"socialMediaIcons": {
+				"display": "flex",
+				"justifyContent": "center"
+			},
+			"socialMediaIcon": {
+				"margin": theme.spacing(3)
+
+			}
+
 		}
-	}));
+	});
 
 const { Links } = (() => {
 
 	type LinkProps = {
 		links: HeaderProps["links"];
 		headerHeight: number;
+		breakPoint: number;
 	};
 
 	const Links = memo((props: LinkProps) => {
 
-		const { links, headerHeight } = props;
+		const { links, headerHeight, breakPoint } = props;
 
-		const { classes } = useStyles();
+		const { classes } = useStyles({
+			breakPoint
+		});
 
 
 		return <div className={classes.root}>
 			{
-				links.map(link => <Link headerHeight={headerHeight} link={link} />)
+				links.map(link => <Link breakPoint={breakPoint} headerHeight={headerHeight} link={link} />)
 			}
 		</div>
 
 	});
 
-	const useStyles = makeStyles()(
-		() => ({
+	const useStyles = makeStyles<{ breakPoint: number }>()(
+		(theme, { breakPoint }) => ({
 			"root": {
-				"display": "flex"
+				"display": "flex",
+				...(theme.windowInnerWidth < breakPoint ? {
+					"flexDirection": "column",
+					"position": "relative",
+					"left": theme.spacing(6),
+
+				} : {
+
+				})
 			},
 
 		})
@@ -155,23 +258,25 @@ const { Link } = (() => {
 	type LinkProps = {
 		link: HeaderProps["links"][number];
 		headerHeight: number;
+		breakPoint: number;
 	}
 
 	const Link = memo((props: LinkProps) => {
 
-		const { link: { label, subLinks, href, onClick }, headerHeight } = props;
+		const { link: { label, subLinks, href, onClick }, headerHeight, breakPoint } = props;
 		const { ref: linkRef, domRect: { height: linkHeight } } = useDomRect();
-		const {ref: subLinksRef, domRect: { height: subLinksHeight}} = useDomRect();
+		const { ref: subLinksRef, domRect: { height: subLinksHeight } } = useDomRect();
 
 		const [areSubLinksUnfolded, setAreSubLinksUnfolded] = useState(false);
-		const toggleSubLinks = useConstCallback(()=>{
+		const toggleSubLinks = useConstCallback(() => {
 			setAreSubLinksUnfolded(!areSubLinksUnfolded);
 		});
 
-		const { classes, cx } = useStyles({
+		const { classes, cx, theme } = useStyles({
 			headerHeight, linkHeight,
 			areSubLinksUnfolded,
-			subLinksHeight
+			subLinksHeight,
+			breakPoint
 		});
 
 		return <div
@@ -179,17 +284,17 @@ const { Link } = (() => {
 			className={classes.linkWrapper}
 			key={label}
 		>
-			<MuiLink 
-				onClick={subLinks !== undefined ? toggleSubLinks : onClick} 
-				href={subLinks !== undefined ? href : undefined} 
+			<MuiLink
+				onClick={subLinks !== undefined ? toggleSubLinks : onClick}
+				href={subLinks !== undefined ? href : undefined}
 				className={classes.link}
-				>
-					{label}
-					{
-						subLinks !== undefined &&
-						<span className={classes.downArrow}>⋁</span>
-					}
-				</MuiLink>
+			>
+				{label}
+				{
+					subLinks !== undefined &&
+					<GlArrow className={classes.downArrow} direction="down" />
+				}
+			</MuiLink>
 			{
 
 				subLinks !== undefined &&
@@ -203,6 +308,10 @@ const { Link } = (() => {
 					</div>
 				</div>
 			}
+			{
+				theme.windowInnerWidth < breakPoint &&
+				<div className={classes.underline}></div>
+			}
 		</div>
 
 
@@ -213,38 +322,50 @@ const { Link } = (() => {
 		headerHeight: number;
 		linkHeight: number;
 		areSubLinksUnfolded: boolean;
-		subLinksHeight: number
+		subLinksHeight: number;
+		breakPoint: number;
 	}>()(
-		(theme, { headerHeight, linkHeight, areSubLinksUnfolded, subLinksHeight }) => ({
+		(theme, { headerHeight, linkHeight, areSubLinksUnfolded, subLinksHeight, breakPoint }) => ({
 			"subLinks": {
 				"display": "flex",
 				"flexDirection": "column",
 				"paddingBottom": theme.spacing(2)
 			},
 			"subLink": {
-				"marginBottom": theme.spacing(3)
+				...(theme.windowInnerWidth >= breakPoint ? {
+					"marginBottom": theme.spacing(3),
+				} : {
+					"marginTop": theme.spacing(4)
+				})
 			},
 			"subLinksWrapper": {
 				"transition": "height 400ms",
 				"height": areSubLinksUnfolded ? subLinksHeight : 0,
 				"overflow": "hidden",
-				"position": "absolute",
-				"top": headerHeight / 2 + linkHeight / 2,
+				...(theme.windowInnerWidth >= breakPoint ? {
+					"position": "absolute",
+					"top": headerHeight / 2 + linkHeight / 2,
+
+				} : {}),
 				"left": 0,
 				"backgroundColor": "black",
 			},
 			"downArrow": {
-				"position": "relative",
-				"display": "inline-block",
-				"left": theme.spacing(3),
-				"top": -2,
-				"fontWeight": 600,
 				"transition": "transform 300ms",
 				"transform": `${areSubLinksUnfolded ? "rotate(0.5turn)" : undefined}`,
+				"height": "10px",
+				"position": "relative",
+				"left": theme.spacing(2)
 			},
 			"link": {
-				...theme.spacing.rightLeft("margin", `${theme.spacing(6)}px`),
+				"whiteSpace": "nowrap",
+				...(theme.windowInnerWidth >= breakPoint ? {
+					...theme.spacing.rightLeft("margin", `${theme.spacing(6)}px`),
+				} : {}),
 				"color": "white",
+				"position": "relative",
+				"display": "flex",
+				"alignItems": "center",
 				"textDecoration": "none",
 				"fontSize": "1.2rem",
 				"cursor": "pointer",
@@ -252,11 +373,23 @@ const { Link } = (() => {
 				"letterSpacing": "0.05rem",
 				"userSelect": "none",
 				"&: hover": {
-					"color": "gold"
+					"color": theme.colors.palette.gold
 				},
 			},
 			"linkWrapper": {
-				"position": "relative"
+				"position": "relative",
+				...(theme.windowInnerWidth < breakPoint ? {
+					"marginBottom": theme.spacing(7)
+				} : {})
+
+			},
+			"underline": {
+				"maxWidth": 400,
+				"height": 1,
+				"backgroundColor": "white",
+				"position": "relative",
+				"top": theme.spacing(4)
+
 			}
 
 		})
