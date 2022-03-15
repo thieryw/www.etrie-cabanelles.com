@@ -2,7 +2,13 @@ import { createThemeProvider, defaultGetTypographyDesc } from "onyxia-ui";
 import { createMakeStyles } from "tss-react";
 import { createText } from "onyxia-ui/Text";
 import { defaultPalette } from "onyxia-ui/lib/color"
-export { breakpointsValues } from "onyxia-ui"
+import  { breakpointsValues as onyxiaBreakpointValues } from "onyxia-ui"
+
+export const breakpointsValues = {
+    ...onyxiaBreakpointValues,
+    "lg": 1280,
+    "lg+": 1440
+}
 
 export const { ThemeProvider, useTheme } = createThemeProvider({
     "getTypographyDesc": ({
