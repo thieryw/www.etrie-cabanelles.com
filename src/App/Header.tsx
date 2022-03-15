@@ -1,4 +1,4 @@
-import {memo, useState, useEffect} from "react";
+import {memo, useState, useMemo, useEffect} from "react";
 import type { ReactNode } from "react";
 import MuiLink from "@mui/material/Link";
 import { makeStyles } from "../theme";
@@ -8,6 +8,7 @@ import { GlArrow } from "gitlanding/utils/GlArrow";
 import Dehaze from "@mui/icons-material/Dehaze";
 import { GlLogo } from "gitlanding/utils/GlLogo";
 import CloseIcon from '@mui/icons-material/Close';
+import { breakpointsValues } from "../theme";
 
 
 export type HeaderProps = {
@@ -27,6 +28,7 @@ export type HeaderProps = {
 		iconUrl: string;
 		href: string;
 	}[];
+	breakpoint?: number;
 
 
 }
@@ -34,99 +36,114 @@ export type HeaderProps = {
 export const Header = memo((props: HeaderProps) => {
 	const { links, socialMediaIcons, title } = props;
 	const [isMenuUnfolded, setIsMenuUnfolded] = useState(false);
-	const [breakPoint, setBreakPoint] = useState(0);
 	const toggleMenu = useConstCallback(() => {
 		setIsMenuUnfolded(!isMenuUnfolded);
 	});
 	const { ref, domRect: { height: headerHeight } } = useDomRect();
-	const {ref: linksRef, domRect: { height: linksHeight, width: linksWidth }} = useDomRect();
+	const { ref: linkAndSocialRef, domRect: { height: linkAndSocialHeight } } = useDomRect();
+
+	const [linkAndSocialFixedHeight, setLinkAndSocialFixedHeight] = useState(0);
+
+
+
+	const breakpoint = useMemo(() => {
+		return props.breakpoint ?? breakpointsValues.md
+	}, [props.breakpoint])
+
+
+	const { theme, classes, cx } = useStyles({
+		"isEvenNumberOfLinks": links.length % 2 === 0,
+		isMenuUnfolded,
+		breakpoint,
+		"linkAndSocialHeight": linkAndSocialFixedHeight
+	});
 
 	useEffect(()=>{
-		if(breakPoint !== 0){
+		if(
+			theme.windowInnerWidth >= breakpoint ||
+			linkAndSocialFixedHeight !== 0
+		){
 			return;
 		}
 
-		setBreakPoint(linksWidth);
+		setLinkAndSocialFixedHeight(linkAndSocialHeight);
 
-	}, [linksWidth, breakPoint]);
+	},[
+		theme.windowInnerWidth, 
+		linkAndSocialHeight, 
+		breakpoint, 
+		linkAndSocialFixedHeight
+	])
 
-	const { theme, classes } = useStyles({
-		"isEvenNumberOfLinks": links.length % 2 === 0,
-		isMenuUnfolded,
-		linksHeight,
-		breakPoint
-
-	});
 	return <div className={classes.outerWrapper}>
 		{
-			theme.windowInnerWidth < breakPoint &&
-			<div className={classes.closeButton} onClick={toggleMenu}>
+			theme.windowInnerWidth < breakpoint &&
+			<div className={classes.toggleButton} onClick={toggleMenu}>
 				<Dehaze />
 			</div>
 		}
 		<header ref={ref} className={classes.root}>
 			<div className={classes.innerWrapper}>
 				{
-					theme.windowInnerWidth < breakPoint &&
-					<div className={classes.closeButton} onClick={toggleMenu}>
+					theme.windowInnerWidth < breakpoint &&
+					<div className={cx(classes.toggleButton, classes.closeButton)} onClick={toggleMenu}>
 						<CloseIcon />
 					</div>
 
 				}
-				<div ref={linksRef} className={classes.linkAndTitleWrapper}>
-					{
-						(() => {
-							if (theme.windowInnerWidth < breakPoint) {
-								return <Links breakPoint={breakPoint} headerHeight={headerHeight} links={links} />
-							};
+				<div ref={linkAndSocialRef} className={classes.linkAndSocialWrapper}>
+					<div className={classes.linkAndTitleWrapper}>
+						{
+							(() => {
+								if (theme.windowInnerWidth < breakpoint) {
+									return <Links breakPoint={breakpoint} headerHeight={headerHeight} links={links} />
+								};
 
-							if (links.length % 2 !== 0) {
-								return <>
-									<div>
-										{title}
-									</div>
-									<Links breakPoint={breakPoint} headerHeight={headerHeight} links={links} />
-								</>
-							}
-
-							return <>
-								<Links breakPoint={breakPoint} headerHeight={headerHeight} links={links.filter((_link, index) =>
-									index < (links.length) / 2
-								)
+								if (links.length % 2 !== 0) {
+									return <>
+										<div>
+											{title}
+										</div>
+										<Links breakPoint={breakpoint} headerHeight={headerHeight} links={links} />
+									</>
 								}
-								/>
-								<div className={classes.titleWrapper}>
-									{title}
-								</div>
-								<Links
-									breakPoint={breakPoint}
-									headerHeight={headerHeight}
-									links={links.filter((_link, index) =>
-										index >= (links.length) / 2
+
+								return <>
+									<Links breakPoint={breakpoint} headerHeight={headerHeight} links={links.filter((_link, index) =>
+										index < (links.length) / 2
 									)
 									}
-								/>
-							</>
-						})()
-					}
-				</div>
-
-				{
-					socialMediaIcons !== undefined && theme.windowInnerWidth < breakPoint &&
-					<div className={classes.socialMediaIcons}>
-						{
-							socialMediaIcons.map(({ href, iconUrl }) =>
-								<MuiLink className={classes.socialMediaIcon} key={href} href={href}>
-									<GlLogo logoUrl={iconUrl} width={theme.spacing(7)} />
-								</MuiLink>
-							)
+									/>
+									<div className={classes.titleWrapper}>
+										{title}
+									</div>
+									<Links
+										breakPoint={breakpoint}
+										headerHeight={headerHeight}
+										links={links.filter((_link, index) =>
+											index >= (links.length) / 2
+										)
+										}
+									/>
+								</>
+							})()
 						}
 					</div>
 
-				}
-
+					{
+						socialMediaIcons !== undefined && theme.windowInnerWidth < breakpoint &&
+						<div className={classes.socialMediaIcons}>
+							{
+								socialMediaIcons.map(({ href, iconUrl }) =>
+									<MuiLink className={classes.socialMediaIcon} key={href} href={href}>
+										<GlLogo logoUrl={iconUrl} width={theme.spacing(6) + theme.spacing(2)} />
+									</MuiLink>
+								)
+							}
+						</div>
+					}
+				</div>
 			</div>
-
 		</header>
 	</div>
 })
@@ -134,31 +151,42 @@ export const Header = memo((props: HeaderProps) => {
 const useStyles = makeStyles<{
 	isEvenNumberOfLinks: boolean;
 	isMenuUnfolded: boolean;
-	linksHeight: number;
-	breakPoint: number;
+	breakpoint: number;
+	linkAndSocialHeight: number;
 }>()(
-	(theme, { isEvenNumberOfLinks, isMenuUnfolded, linksHeight, breakPoint }) => {
+	(theme, { isEvenNumberOfLinks, isMenuUnfolded, breakpoint, linkAndSocialHeight }) => {
 		return {
 			"root": {
-				"position": "absolute",
+				"position": "relative",
 				"width": theme.windowInnerWidth,
 				"top": 0,
 				"left": 0,
-				"height": linksHeight + theme.spacing(3) * 2,
 				"backgroundColor": "black",
-				"opacity": breakPoint === 0 ? 0 : 1,
-				...(theme.windowInnerWidth < breakPoint ? {
-					"height": isMenuUnfolded ? "100vh" : 0,
-					"transition": breakPoint === 0 ? "none" : "height 400ms",
+				...(theme.windowInnerWidth < breakpoint ? {
+					"height": isMenuUnfolded ? window.innerHeight : 0,
+					"transition": "height 400ms",
 					"overflow": "hidden"
 				} : {})
 
 			},
-			"closeButton": {
+			"toggleButton": {
 				"position": "absolute",
-				"top": theme.spacing(5),
-				"right": theme.spacing(5),
+				...(() => {
+					const value = theme.spacing(6) + theme.spacing(4);
+
+					return {
+						"top": value,
+						"right": value
+					}
+
+				})(),
 				"transform": "scale(1.4)"
+			},
+			"closeButton": {
+				"transition": "opacity 200ms",
+				"opacity": isMenuUnfolded ? 1 : 0,
+				"pointerEvents": isMenuUnfolded ? undefined : "none",
+				"zIndex": 4
 
 			},
 			"outerWrapper": {
@@ -167,20 +195,20 @@ const useStyles = makeStyles<{
 			"innerWrapper": {
 				"padding": theme.spacing(3),
 				"display": "flex",
-				"justifyContent": "center",
-				...(theme.windowInnerWidth < breakPoint ? {
+				...(theme.windowInnerWidth < breakpoint ? {
 					"flexDirection": "column",
 					"height": "100%",
-					"paddingTop": theme.spacing(8)
-				} : {})
+					"overflow": "auto"
+				} : {
+					"justifyContent": "center",
+				})
 			},
 			"linkAndTitleWrapper": {
-				"position": theme.windowInnerWidth < breakPoint ? "relative" : "absolute",
 				"display": "flex",
 				"flexDirection": "row",
 				"alignItems": "center",
 				"justifyContent": "center",
-				...(theme.windowInnerWidth < breakPoint ? {
+				...(theme.windowInnerWidth < breakpoint ? {
 					"justifyContent": "left",
 
 				} : {})
@@ -196,9 +224,23 @@ const useStyles = makeStyles<{
 
 				})()
 			},
+			"linkAndSocialWrapper": {
+				...(theme.windowInnerWidth < breakpoint ? {
+					"position": "relative",
+					"top": (()=>{
+						if(linkAndSocialHeight >= window.innerHeight - theme.spacing(8)){
+							return theme.spacing(8);
+						}
+						return window.innerHeight / 2 - linkAndSocialHeight / 2;
+
+					})(),
+
+				} : {})
+			},
 			"socialMediaIcons": {
 				"display": "flex",
-				"justifyContent": "center"
+				"justifyContent": "center",
+				//"padding": theme.spacing(7)
 			},
 			"socialMediaIcon": {
 				"margin": theme.spacing(3)
@@ -276,7 +318,7 @@ const { Link } = (() => {
 			headerHeight, linkHeight,
 			areSubLinksUnfolded,
 			subLinksHeight,
-			breakPoint
+			breakpoint: breakPoint
 		});
 
 		return <div
@@ -323,16 +365,16 @@ const { Link } = (() => {
 		linkHeight: number;
 		areSubLinksUnfolded: boolean;
 		subLinksHeight: number;
-		breakPoint: number;
+		breakpoint: number;
 	}>()(
-		(theme, { headerHeight, linkHeight, areSubLinksUnfolded, subLinksHeight, breakPoint }) => ({
+		(theme, { headerHeight, linkHeight, areSubLinksUnfolded, subLinksHeight, breakpoint }) => ({
 			"subLinks": {
 				"display": "flex",
 				"flexDirection": "column",
 				"paddingBottom": theme.spacing(2)
 			},
 			"subLink": {
-				...(theme.windowInnerWidth >= breakPoint ? {
+				...(theme.windowInnerWidth >= breakpoint ? {
 					"marginBottom": theme.spacing(3),
 				} : {
 					"marginTop": theme.spacing(4)
@@ -342,7 +384,7 @@ const { Link } = (() => {
 				"transition": "height 400ms",
 				"height": areSubLinksUnfolded ? subLinksHeight : 0,
 				"overflow": "hidden",
-				...(theme.windowInnerWidth >= breakPoint ? {
+				...(theme.windowInnerWidth >= breakpoint ? {
 					"position": "absolute",
 					"top": headerHeight / 2 + linkHeight / 2,
 
@@ -359,9 +401,31 @@ const { Link } = (() => {
 			},
 			"link": {
 				"whiteSpace": "nowrap",
-				...(theme.windowInnerWidth >= breakPoint ? {
-					...theme.spacing.rightLeft("margin", `${theme.spacing(6)}px`),
-				} : {}),
+				...(() => {
+					const getSpacing = (breakpointValue: number) => {
+						return theme.spacing.rightLeft("margin", `${theme.spacing(breakpointValue)}px`)
+					};
+					if (theme.windowInnerWidth >= breakpointsValues["lg+"]) {
+						return {
+							...getSpacing(6)
+						};
+					};
+
+					if (theme.windowInnerWidth >= breakpointsValues["lg"]) {
+						return {
+							...getSpacing(5)
+						};
+					}
+
+					if (breakpoint < breakpointsValues["lg"] && theme.windowInnerWidth >= breakpoint) {
+						return {
+							...getSpacing(4)
+						};
+					};
+
+					return {};
+
+				})(),
 				"color": "white",
 				"position": "relative",
 				"display": "flex",
@@ -378,7 +442,7 @@ const { Link } = (() => {
 			},
 			"linkWrapper": {
 				"position": "relative",
-				...(theme.windowInnerWidth < breakPoint ? {
+				...(theme.windowInnerWidth < breakpoint ? {
 					"marginBottom": theme.spacing(7)
 				} : {})
 
@@ -386,7 +450,7 @@ const { Link } = (() => {
 			"underline": {
 				"maxWidth": 400,
 				"height": 1,
-				"backgroundColor": "white",
+				"backgroundColor": "grey",
 				"position": "relative",
 				"top": theme.spacing(4)
 

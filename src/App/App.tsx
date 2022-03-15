@@ -10,13 +10,14 @@ export function App() {
 	const { classes } = useStyles();
 	return <GlTemplate
 		classes={{
-			"headerWrapper": classes.header
+			"headerWrapper": classes.header,
 		}}
 		headerOptions={{
 			"position": "top of page",
 		}}
 		header={<Header
 			title={<GlLogo logoUrl={logoIconUrl} width={100} height={100} />}
+			breakpoint={1000}
 			links={[
 				{
 					"label": "ACCUEIL"
@@ -70,7 +71,9 @@ const useStyles = makeStyles()({
 		"overflow": "visible",
 		"padding": 0,
 		"position": "absolute",
-		"zIndex": 4000
+		"zIndex": 4000,
+		"height": "unset"
+
 
 	}
 })
