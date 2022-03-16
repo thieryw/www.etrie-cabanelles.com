@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.js": "/www.etrie-cabanelles.com/static/js/main.5bd52d63.chunk.js",
-    "main.js.map": "/www.etrie-cabanelles.com/static/js/main.5bd52d63.chunk.js.map",
+    "main.js": "/www.etrie-cabanelles.com/static/js/main.a4bb4d94.chunk.js",
+    "main.js.map": "/www.etrie-cabanelles.com/static/js/main.a4bb4d94.chunk.js.map",
     "runtime-main.js": "/www.etrie-cabanelles.com/static/js/runtime-main.0c08489f.js",
     "runtime-main.js.map": "/www.etrie-cabanelles.com/static/js/runtime-main.0c08489f.js.map",
-    "static/js/2.6d036ce1.chunk.js": "/www.etrie-cabanelles.com/static/js/2.6d036ce1.chunk.js",
-    "static/js/2.6d036ce1.chunk.js.map": "/www.etrie-cabanelles.com/static/js/2.6d036ce1.chunk.js.map",
+    "static/js/2.a03bdd0e.chunk.js": "/www.etrie-cabanelles.com/static/js/2.a03bdd0e.chunk.js",
+    "static/js/2.a03bdd0e.chunk.js.map": "/www.etrie-cabanelles.com/static/js/2.a03bdd0e.chunk.js.map",
     "index.html": "/www.etrie-cabanelles.com/index.html",
-    "static/js/2.6d036ce1.chunk.js.LICENSE.txt": "/www.etrie-cabanelles.com/static/js/2.6d036ce1.chunk.js.LICENSE.txt",
+    "static/js/2.a03bdd0e.chunk.js.LICENSE.txt": "/www.etrie-cabanelles.com/static/js/2.a03bdd0e.chunk.js.LICENSE.txt",
     "static/media/LogoIcon.c881af1e.png": "/www.etrie-cabanelles.com/static/media/LogoIcon.c881af1e.png",
     "static/media/downArrow.svg": "/www.etrie-cabanelles.com/static/media/downArrow.23758f40.svg",
     "static/media/instagram.359ce0c8.png": "/www.etrie-cabanelles.com/static/media/instagram.359ce0c8.png"
   },
   "entrypoints": [
     "static/js/runtime-main.0c08489f.js",
-    "static/js/2.6d036ce1.chunk.js",
-    "static/js/main.5bd52d63.chunk.js"
+    "static/js/2.a03bdd0e.chunk.js",
+    "static/js/main.a4bb4d94.chunk.js"
   ]
 }
