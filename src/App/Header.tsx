@@ -33,14 +33,18 @@ export type HeaderProps = {
 
 }
 
+const transitionTime = 400;
+
 export const Header = memo((props: HeaderProps) => {
 	const { links, socialMediaIcons, title } = props;
 	const [isMenuUnfolded, setIsMenuUnfolded] = useState(false);
-	const toggleMenu = useConstCallback(() => {
+	const [isMenuUnfoldedTrans, setIsMenuUnfoldedTrans] = useState(false);
+	const toggleMenu = useConstCallback(async () => {
 		setIsMenuUnfolded(!isMenuUnfolded);
+		await new Promise<void>(resolve=> setTimeout(resolve, transitionTime));
+		setIsMenuUnfoldedTrans(!isMenuUnfoldedTrans);
 	});
 	const { ref, domRect: { height: headerHeight } } = useDomRect();
-	const { ref: linkAndSocialRef, domRect: { height: linkAndSocialHeight } } = useDomRect();
 
 	const [linkAndSocialFixedHeight, setLinkAndSocialFixedHeight] = useState(0);
 
@@ -55,25 +59,26 @@ export const Header = memo((props: HeaderProps) => {
 		"isEvenNumberOfLinks": links.length % 2 === 0,
 		isMenuUnfolded,
 		breakpoint,
-		"linkAndSocialHeight": linkAndSocialFixedHeight
+		"linkAndSocialHeight": linkAndSocialFixedHeight,
+		isMenuUnfoldedTrans,
 	});
 
+	const { ref: linkAndSocialRef, domRect: { height: linkAndSocialHeight } } = useDomRect();
+
 	useEffect(()=>{
-		if(
-			theme.windowInnerWidth >= breakpoint ||
-			linkAndSocialFixedHeight !== 0
-		){
-			return;
-		}
+			if(
+				theme.windowInnerWidth >= breakpoint ||
+				isMenuUnfolded
+			){
+				return;
+			}
+		  setLinkAndSocialFixedHeight(linkAndSocialHeight);
 
-		setLinkAndSocialFixedHeight(linkAndSocialHeight);
-
-	},[
-		theme.windowInnerWidth, 
-		linkAndSocialHeight, 
-		breakpoint, 
-		linkAndSocialFixedHeight
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		linkAndSocialHeight,
+		breakpoint,
+	]);
 
 	return <div className={classes.outerWrapper}>
 		{
@@ -153,8 +158,15 @@ const useStyles = makeStyles<{
 	isMenuUnfolded: boolean;
 	breakpoint: number;
 	linkAndSocialHeight: number;
+	isMenuUnfoldedTrans: boolean;
 }>()(
-	(theme, { isEvenNumberOfLinks, isMenuUnfolded, breakpoint, linkAndSocialHeight }) => {
+	(theme, {
+		isEvenNumberOfLinks,
+		isMenuUnfolded,
+		breakpoint,
+		linkAndSocialHeight,
+		isMenuUnfoldedTrans,
+	}) => {
 		return {
 			"root": {
 				"position": "relative",
@@ -164,7 +176,7 @@ const useStyles = makeStyles<{
 				"backgroundColor": "black",
 				...(theme.windowInnerWidth < breakpoint ? {
 					"height": isMenuUnfolded ? window.innerHeight : 0,
-					"transition": "height 400ms",
+					"transition": `height ${transitionTime}ms`,
 					"overflow": "hidden"
 				} : {})
 
@@ -198,7 +210,7 @@ const useStyles = makeStyles<{
 				...(theme.windowInnerWidth < breakpoint ? {
 					"flexDirection": "column",
 					"height": "100%",
-					"overflow": "auto"
+					"overflow": isMenuUnfoldedTrans && isMenuUnfolded ? "auto" : "hidden"
 				} : {
 					"justifyContent": "center",
 				})
@@ -227,8 +239,8 @@ const useStyles = makeStyles<{
 			"linkAndSocialWrapper": {
 				...(theme.windowInnerWidth < breakpoint ? {
 					"position": "relative",
-					"top": (()=>{
-						if(linkAndSocialHeight >= window.innerHeight - theme.spacing(8)){
+					"top": (() => {
+						if (linkAndSocialHeight >= window.innerHeight - theme.spacing(8)) {
 							return theme.spacing(8);
 						}
 						return window.innerHeight / 2 - linkAndSocialHeight / 2;
@@ -240,7 +252,6 @@ const useStyles = makeStyles<{
 			"socialMediaIcons": {
 				"display": "flex",
 				"justifyContent": "center",
-				//"padding": theme.spacing(7)
 			},
 			"socialMediaIcon": {
 				"margin": theme.spacing(3)
@@ -381,7 +392,7 @@ const { Link } = (() => {
 				})
 			},
 			"subLinksWrapper": {
-				"transition": "height 400ms",
+				"transition": `height ${transitionTime}ms`,
 				"height": areSubLinksUnfolded ? subLinksHeight : 0,
 				"overflow": "hidden",
 				...(theme.windowInnerWidth >= breakpoint ? {
@@ -433,7 +444,7 @@ const { Link } = (() => {
 				"textDecoration": "none",
 				"fontSize": "1.2rem",
 				"cursor": "pointer",
-				"transition": "color 400ms",
+				"transition": `color ${transitionTime}ms`,
 				"letterSpacing": "0.05rem",
 				"userSelect": "none",
 				"&: hover": {
