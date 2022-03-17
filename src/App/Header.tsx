@@ -9,6 +9,7 @@ import Dehaze from "@mui/icons-material/Dehaze";
 import { GlLogo } from "gitlanding/utils/GlLogo";
 import CloseIcon from '@mui/icons-material/Close';
 import { breakpointsValues } from "../theme";
+import { useClickAway } from "powerhooks/useClickAway";
 
 
 export type HeaderProps = {
@@ -41,7 +42,7 @@ export const Header = memo((props: HeaderProps) => {
 	const [isMenuUnfoldedTrans, setIsMenuUnfoldedTrans] = useState(false);
 	const toggleMenu = useConstCallback(async () => {
 		setIsMenuUnfolded(!isMenuUnfolded);
-		await new Promise<void>(resolve=> setTimeout(resolve, transitionTime));
+		await new Promise<void>(resolve => setTimeout(resolve, transitionTime));
 		setIsMenuUnfoldedTrans(!isMenuUnfoldedTrans);
 	});
 	const { ref, domRect: { height: headerHeight } } = useDomRect();
@@ -65,14 +66,14 @@ export const Header = memo((props: HeaderProps) => {
 
 	const { ref: linkAndSocialRef, domRect: { height: linkAndSocialHeight } } = useDomRect();
 
-	useEffect(()=>{
-			if(
-				theme.windowInnerWidth >= breakpoint ||
-				isMenuUnfolded
-			){
-				return;
-			}
-		  setLinkAndSocialFixedHeight(linkAndSocialHeight);
+	useEffect(() => {
+		if (
+			theme.windowInnerWidth >= breakpoint ||
+			isMenuUnfolded
+		) {
+			return;
+		}
+		setLinkAndSocialFixedHeight(linkAndSocialHeight);
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
@@ -83,7 +84,7 @@ export const Header = memo((props: HeaderProps) => {
 	return <div className={classes.outerWrapper}>
 		{
 			theme.windowInnerWidth < breakpoint &&
-			<div className={classes.toggleButton} onClick={toggleMenu}>
+			<div className={cx(classes.toggleButton, classes.openButton)} onClick={toggleMenu}>
 				<Dehaze />
 			</div>
 		}
@@ -173,7 +174,7 @@ const useStyles = makeStyles<{
 				"width": theme.windowInnerWidth,
 				"top": 0,
 				"left": 0,
-				"backgroundColor": "black",
+				"backgroundColor": "rgba(1,1,1,0.7)",
 				...(theme.windowInnerWidth < breakpoint ? {
 					"height": isMenuUnfolded ? window.innerHeight : 0,
 					"transition": `height ${transitionTime}ms`,
@@ -200,6 +201,11 @@ const useStyles = makeStyles<{
 				"pointerEvents": isMenuUnfolded ? undefined : "none",
 				"zIndex": 4
 
+			},
+			"openButton": {
+				"transition": "opacity 200ms",
+				"opacity": isMenuUnfolded ? 0 : 1,
+				"pointerEvents": isMenuUnfolded ? "none" : undefined
 			},
 			"outerWrapper": {
 				"width": "100vw"
@@ -317,13 +323,22 @@ const { Link } = (() => {
 	const Link = memo((props: LinkProps) => {
 
 		const { link: { label, subLinks, href, onClick }, headerHeight, breakPoint } = props;
-		const { ref: linkRef, domRect: { height: linkHeight } } = useDomRect();
 		const { ref: subLinksRef, domRect: { height: subLinksHeight } } = useDomRect();
 
 		const [areSubLinksUnfolded, setAreSubLinksUnfolded] = useState(false);
 		const toggleSubLinks = useConstCallback(() => {
 			setAreSubLinksUnfolded(!areSubLinksUnfolded);
 		});
+
+		const { rootRef } = useClickAway(() => {
+			if (!areSubLinksUnfolded) {
+				return;
+			}
+
+			setAreSubLinksUnfolded(false);
+
+		});
+		const { domRect: { height: linkHeight } } = useDomRect({ "ref": rootRef });
 
 		const { classes, cx, theme } = useStyles({
 			headerHeight, linkHeight,
@@ -333,7 +348,7 @@ const { Link } = (() => {
 		});
 
 		return <div
-			ref={subLinks !== undefined ? linkRef : undefined}
+			ref={subLinks !== undefined ? rootRef : undefined}
 			className={classes.linkWrapper}
 			key={label}
 		>
@@ -401,7 +416,7 @@ const { Link } = (() => {
 
 				} : {}),
 				"left": 0,
-				"backgroundColor": "black",
+				"backgroundColor": theme.windowInnerWidth >= breakpoint ? "rgba(1,1,1,0.7)" : "none",
 			},
 			"downArrow": {
 				"transition": "transform 300ms",
