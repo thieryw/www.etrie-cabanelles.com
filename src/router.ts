@@ -4,12 +4,12 @@ import {makeThisModuleAnExecutableRouteLister} from "github-pages-plugin-for-typ
 
 export const routeDefs = {
 	"home": defineRoute("/"),
-	"eco-venue": defineRoute("/éco-lieu"),
-	"presentation": defineRoute("/présentation"),
+	"eco-venue": defineRoute("/eco-lieu"),
+	"presentation": defineRoute("/presentation"),
 	"services": defineRoute("/services"),
-	"hosting": defineRoute("/hébergement"),
+	"hosting": defineRoute("/hebergement"),
 	"gallery": defineRoute("/galerie"),
-	"contact": defineRoute("contact"),
+	"contact": defineRoute("/contact"),
 	"legal": defineRoute("/mentions-legal")
 };
 
