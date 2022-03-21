@@ -330,14 +330,14 @@ const { Link } = (() => {
 			setAreSubLinksUnfolded(!areSubLinksUnfolded);
 		});
 
-		const { rootRef } = useClickAway(() => {
+		const { ref: rootRef } = useClickAway({"onClickAway": () => {
 			if (!areSubLinksUnfolded) {
 				return;
 			}
 
 			setAreSubLinksUnfolded(false);
 
-		});
+		}});
 		const { domRect: { height: linkHeight } } = useDomRect({ "ref": rootRef });
 
 		const { classes, cx, theme } = useStyles({
